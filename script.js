@@ -18,6 +18,7 @@ const elements = {
 	sidebar: document.querySelector('.sidebar'),
 	btnSave: document.getElementById('btn-save'),
 	list: document.getElementById('prompt-list'),
+	search: document.getElementById('search-input'),
 };
 
 // Atualiza o estado do wrapper conforme o conteúdo do elemento
@@ -77,13 +78,14 @@ function save() {
 		state.selectedId = newPrompt.id;
 	}
 
+	renderList(elements.search.value);
 	persist();
+	alert('Prompt salvo com sucesso!');
 }
 
 function persist() {
 	try {
 		localStorage.setItem(STORAGE_KEY, JSON.stringify(state.prompts));
-		alert('Prompt salvo com sucesso!');
 	} catch (error) {
 		console.log('Erro ao salvar no localStorage:', error);
 	}
@@ -101,12 +103,12 @@ function load() {
 
 function createPromptItem(prompt) {
 	return `
-		<li class="prompt-item">
+		<li class="prompt-item" data-id="${prompt.id}" data-action="select">
 			<div class="prompt-item-content">
 				<span class="prompt-item-title">${prompt.title}</span>
 				<span class="prompt-item-description">${prompt.content}</span>
 			</div>
-			<button class="btn-icon" title="Remover">
+			<button class="btn-icon" title="Remover" data-action="remove">
 				<img src="assets/remove.svg" alt="Remover" class="icon icon-trash" />
 			</button>
 		</li>
@@ -121,8 +123,37 @@ function renderList(filterText = "") {
 	elements.list.innerHTML = filteredPrompts;
 }
 
-// Eventos dos botões
+// Eventos 
 elements.btnSave.addEventListener('click', save);
+
+elements.search.addEventListener('input', function(event) {
+	renderList(event.target.value);
+})
+
+elements.list.addEventListener('click', function(event) {
+	const removeBtn = event.target.closest('[data-action="remove"]');
+	const item = event.target.closest('[data-id]');
+
+	if(!item) return;
+	
+	const id = item.getAttribute('data-id');
+	
+	if(removeBtn) {
+		state.prompts = state.prompts.filter((p) => p.id !== id);
+		renderList(elements.search.value);
+		persist();
+		return
+	}
+	
+	if(event.target.closest('[data-action="select"]')) {
+		const prompt = state.prompts.find((p) => p.id === id);
+		if(prompt) {
+			elements.promptTitle.textContent = prompt.title;
+			elements.promptContent.textContent = prompt.content;
+			updateAllEditableStates();
+		}
+	}
+})
 
 // Função de inicialização
 function init() {
