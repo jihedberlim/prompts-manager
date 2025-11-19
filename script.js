@@ -1,3 +1,12 @@
+// Chave para identificar os dados salvos da aplicação no navegador
+const STORAGE_KEY = 'prompts-storage';
+
+// Estado para carregar os prompts salvos e exibir
+const state = {
+	prompts: [],
+	selectedId: null,
+}
+
 // Seleção dos elementos por id
 const elements = {
 	promptTitle: document.getElementById('prompt-title'),
@@ -7,6 +16,7 @@ const elements = {
 	btnOpen: document.getElementById('btn-open'),
 	btnCollapse: document.getElementById('btn-collapse'),
 	sidebar: document.querySelector('.sidebar'),
+	btnSave: document.getElementById('btn-save'),
 };
 
 // Atualiza o estado do wrapper conforme o conteúdo do elemento
@@ -42,6 +52,44 @@ function closeSidebar() {
 	elements.sidebar.style.display = 'none';
 	elements.btnOpen.style.display = 'block';
 }
+
+function save() {
+	const title = elements.promptTitle.textContent.trim();
+	const content = elements.promptContent.innerHTML.trim();
+	const hasContent = elements.promptContent.textContent.trim();
+
+	if (!title || !hasContent) {
+		alert('Por favor, preencha tanto o título quanto o conteúdo do prompt antes de salvar.');
+		return;
+	}
+
+	if (state.selectedId) {
+
+	} else {
+		const newPrompt = {
+			id: Date.now().toString(36),
+			title,
+			content,
+		}
+
+		state.prompts.unshift(newPrompt);
+		state.selectedId = newPrompt.id;
+	}
+
+	persist();
+}
+
+function persist() {
+	try {
+		localStorage.setItem(STORAGE_KEY, JSON.stringify(state.prompts));
+		alert('Prompt salvo com sucesso!');
+	} catch (error) {
+		console.log('Erro ao salvar no localStorage:', error);
+	}
+}
+
+// Eventos dos botões
+elements.btnSave.addEventListener('click', save);
 
 // Função de inicialização
 function init() {
