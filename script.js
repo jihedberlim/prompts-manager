@@ -17,6 +17,7 @@ const elements = {
 	btnCollapse: document.getElementById('btn-collapse'),
 	sidebar: document.querySelector('.sidebar'),
 	btnSave: document.getElementById('btn-save'),
+	list: document.getElementById('prompt-list'),
 };
 
 // Atualiza o estado do wrapper conforme o conteúdo do elemento
@@ -88,11 +89,45 @@ function persist() {
 	}
 }
 
+function load() {
+	try {
+		const storage = localStorage.getItem(STORAGE_KEY);
+		state.prompts = storage ? JSON.parse(storage) : [];
+		state.selectedId = null;
+	} catch (error) {
+		console.log('Erro ao carregar do localStorage:', error);
+	}
+}
+
+function createPromptItem(prompt) {
+	return `
+		<li class="prompt-item">
+			<div class="prompt-item-content">
+				<span class="prompt-item-title">${prompt.title}</span>
+				<span class="prompt-item-description">${prompt.content}</span>
+			</div>
+			<button class="btn-icon" title="Remover">
+				<img src="assets/remove.svg" alt="Remover" class="icon icon-trash" />
+			</button>
+		</li>
+	`
+}
+
+function renderList(filterText = "") {
+	const filteredPrompts = state.prompts.filter((prompt) =>
+		prompt.title.toLowerCase().includes(filterText.toLowerCase().trim())
+	).map((p) => createPromptItem(p)).join('');
+
+	elements.list.innerHTML = filteredPrompts;
+}
+
 // Eventos dos botões
 elements.btnSave.addEventListener('click', save);
 
 // Função de inicialização
 function init() {
+	load();
+	renderList("");
 	attachAllEditableHandlers();
 	updateAllEditableStates();
 
