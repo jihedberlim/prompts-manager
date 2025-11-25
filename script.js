@@ -19,6 +19,8 @@ const elements = {
 	btnSave: document.getElementById('btn-save'),
 	list: document.getElementById('prompt-list'),
 	search: document.getElementById('search-input'),
+	btnNew: document.getElementById('btn-new'),
+	btnCopy: document.getElementById('btn-copy'),
 };
 
 // Atualiza o estado do wrapper conforme o conteúdo do elemento
@@ -66,7 +68,11 @@ function save() {
 	}
 
 	if (state.selectedId) {
-
+		const existingPrompt = state.prompts.find((p) => p.id === state.selectedId);	
+		if (existingPrompt) {
+			existingPrompt.title = title || 'Sem título';
+			existingPrompt.content = content || 'Sem conteúdo';
+		}
 	} else {
 		const newPrompt = {
 			id: Date.now().toString(36),
@@ -102,11 +108,13 @@ function load() {
 }
 
 function createPromptItem(prompt) {
+	const tmp = document.createElement('div');
+	tmp.innerHTML = prompt.content;
 	return `
 		<li class="prompt-item" data-id="${prompt.id}" data-action="select">
 			<div class="prompt-item-content">
 				<span class="prompt-item-title">${prompt.title}</span>
-				<span class="prompt-item-description">${prompt.content}</span>
+				<span class="prompt-item-description">${tmp.textContent}</span>
 			</div>
 			<button class="btn-icon" title="Remover" data-action="remove">
 				<img src="assets/remove.svg" alt="Remover" class="icon icon-trash" />
@@ -123,8 +131,32 @@ function renderList(filterText = "") {
 	elements.list.innerHTML = filteredPrompts;
 }
 
+function newPrompt() {
+	state.selectedId = null;
+	elements.promptTitle.textContent = '';
+	elements.promptContent.textContent = '';
+	updateAllEditableStates();
+	elements.promptTitle.focus();
+}
+
+function copySelected() {
+	try {
+		const content = elements.promptContent
+		if (!navigator.clipboard) {
+			alert('Clipboard API não suportado neste ambiente.');
+			return;
+		}
+		navigator.clipboard.writeText(content.innerText);
+		alert('Conteúdo copiado para a área de transferência!');
+	} catch (error) {
+		console.log('Erro ao copiar para a área de transferência:', error);
+	}
+}
+
 // Eventos 
 elements.btnSave.addEventListener('click', save);
+elements.btnNew.addEventListener('click', newPrompt);
+elements.btnCopy.addEventListener('click', copySelected)
 
 elements.search.addEventListener('input', function(event) {
 	renderList(event.target.value);
@@ -137,6 +169,7 @@ elements.list.addEventListener('click', function(event) {
 	if(!item) return;
 	
 	const id = item.getAttribute('data-id');
+	state.selectedId = id;
 	
 	if(removeBtn) {
 		state.prompts = state.prompts.filter((p) => p.id !== id);
@@ -149,7 +182,7 @@ elements.list.addEventListener('click', function(event) {
 		const prompt = state.prompts.find((p) => p.id === id);
 		if(prompt) {
 			elements.promptTitle.textContent = prompt.title;
-			elements.promptContent.textContent = prompt.content;
+			elements.promptContent.innerHTML = prompt.content;
 			updateAllEditableStates();
 		}
 	}
