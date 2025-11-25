@@ -48,13 +48,13 @@ function attachAllEditableHandlers() {
 
 // Funções para abrir e fechar a sidebar
 function openSidebar() {
-	elements.sidebar.style.display = 'flex';
-	elements.btnOpen.style.display = 'none';
+	elements.sidebar.classList.add('open');	
+	elements.sidebar.classList.remove('collapsed');
 }
 
 function closeSidebar() {
-	elements.sidebar.style.display = 'none';
-	elements.btnOpen.style.display = 'block';
+	elements.sidebar.classList.remove('open');
+	elements.sidebar.classList.add('collapsed');
 }
 
 function save() {
@@ -196,8 +196,8 @@ function init() {
 	updateAllEditableStates();
 
 	// Estado inicial da sidebar, botão de abrir escondido
-	elements.sidebar.style.display = '';
-	elements.btnOpen.style.display = 'none';
+	elements.sidebar.classList.remove('open');
+	elements.sidebar.classList.remove('collapsed');
 
 	// Eventos para abrir e fechar a sidebar
 	elements.btnOpen.addEventListener('click', openSidebar);
